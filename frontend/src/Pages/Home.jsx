@@ -11,9 +11,9 @@ const Home = () => {
         title={
           "Welcome to ZeeCare Medical Institute | Your Trusted Healthcare Provider"
         }
-        imageUrl={"/hero.png"}
+        imageUrl={"/hero.jpg"}
       />
-      <Biography imageUrl={"/about.png"} />
+      <Biography imageUrl={"/about.jpg"} />
       <Departments />
       <MessageForm />
     </>

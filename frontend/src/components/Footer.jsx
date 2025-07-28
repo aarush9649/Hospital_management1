@@ -79,7 +79,9 @@ const Footer = () => {
               <span>Toronto, Canada</span>
             </div>
           </div>
-        </div>
+        </div><hr />
+        <div><p>© {new Date().getFullYear()} Avanish Kumar Vishwakarma | Hospital Management System | All rights reserved.</p>
+</div>
       </footer>
     </>
   );
