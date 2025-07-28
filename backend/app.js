@@ -15,10 +15,13 @@ config({ path: "./config.env" });
 app.use(
   cors({
     origin: [process.env.FRONTEND_URL_ONE, process.env.FRONTEND_URL_TWO],
-    method: ["GET", "POST", "DELETE", "PUT"],
+    methods: ["GET", "POST", "DELETE", "PUT", "OPTIONS", "PATCH"],
     credentials: true,
   })
 );
+
+app.options("*", cors()); // ✅ To handle preflight properly
+
 
 app.use(cookieParser());
 app.use(express.json());

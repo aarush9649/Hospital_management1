@@ -19,34 +19,46 @@ const Register = () => {
   const navigateTo = useNavigate();
 
   const handleRegistration = async (e) => {
-    e.preventDefault();
-    try {
-      await axios
-        .post(
-          "http://localhost:5000/api/v1/user/patient/register",
-          { firstName, lastName, email, phone, nic, dob, gender, password },
-          {
-            withCredentials: true,
-            headers: { "Content-Type": "application/json" },
-          }
-        )
-        .then((res) => {
-          toast.success(res.data.message);
-          setIsAuthenticated(true);
-          navigateTo("/");
-          setFirstName("");
-          setLastName("");
-          setEmail("");
-          setPhone("");
-          setNic("");
-          setDob("");
-          setGender("");
-          setPassword("");
-        });
-    } catch (error) {
-      toast.error(error.response.data.message);
-    }
-  };
+  e.preventDefault();
+  if (!/^\d{13}$/.test(nic)) {
+  toast.error("NIC must be exactly 13 digits");
+  return;
+}
+
+  try {
+    const res = await axios.post(
+      "http://localhost:5000/api/v1/user/patient/register",
+      { firstName, lastName, email, phone, nic, dob, gender, password },
+      {
+        withCredentials: true,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+
+    toast.success(res.data.message);
+    setIsAuthenticated(true);
+    navigateTo("/");
+
+    setFirstName("");
+    setLastName("");
+    setEmail("");
+    setPhone("");
+    setNic("");
+    setDob("");
+    setGender("");
+    setPassword("");
+  } catch (error) {
+    console.error("Registration Error:", error);
+
+    const message =
+      error?.response?.data?.message ||
+      error?.message ||
+      "Registration failed. Please try again.";
+
+    toast.error(message);
+  }
+};
+
 
   if (isAuthenticated) {
     return <Navigate to={"/"} />;
@@ -91,12 +103,19 @@ const Register = () => {
             />
           </div>
           <div>
-            <input
-              type="number"
-              placeholder="NIC"
-              value={nic}
-              onChange={(e) => setNic(e.target.value)}
-            />
+  <input
+  type="text"
+  placeholder="NIC"
+  value={nic}
+  onChange={(e) => {
+    const value = e.target.value;
+    if (/^\d{0,13}$/.test(value)) {
+      setNic(value);
+    }
+  }}
+/>
+
+
             <input
               type={"date"}
               placeholder="Date of Birth"
