@@ -518,7 +518,7 @@ nav svg {
     z-index: 2;
     transition: 0.3s;
     position: fixed;
-    left: 0;
+    left: -100%;
     height: 100%;
     width: 400px;
     background: #ffffffbf;
@@ -532,7 +532,7 @@ nav svg {
     z-index: 2;
     transition: 0.3s;
     position: fixed;
-    left: -100%;
+    left: 0;
     width: 400px;
     height: 100%;
     background: #ffffffbf;
