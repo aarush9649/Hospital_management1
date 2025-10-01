@@ -5,18 +5,9 @@ import { generateToken } from "../utils/jwtToken.js";
 import cloudinary from "cloudinary";
 
 export const patientRegister = catchAsyncErrors(async (req, res, next) => {
-  const { firstName, lastName, email, phone, nic, dob, gender, password } =
-    req.body;
-  if (
-    !firstName ||
-    !lastName ||
-    !email ||
-    !phone ||
-    !nic ||
-    !dob ||
-    !gender ||
-    !password
-  ) {
+  const { firstName, lastName, email, phone, nic, dob, gender, password } = req.body;
+  
+  if (!firstName || !lastName || !email || !phone || !nic || !dob || !gender || !password) {
     return next(new ErrorHandler("Please Fill Full Form!", 400));
   }
 
@@ -26,29 +17,18 @@ export const patientRegister = catchAsyncErrors(async (req, res, next) => {
   }
 
   const user = await User.create({
-    firstName,
-    lastName,
-    email,
-    phone,
-    nic,
-    dob,
-    gender,
-    password,
-    role: "Patient",
+    firstName, lastName, email, phone, nic, dob, gender, password, role: "Patient",
   });
   generateToken(user, "User Registered!", 200, res);
 });
 
 export const login = catchAsyncErrors(async (req, res, next) => {
-  const { email, password, confirmPassword, role } = req.body;
-  if (!email || !password || !confirmPassword || !role) {
+  const { email, password, role } = req.body;
+  
+  if (!email || !password || !role) {
     return next(new ErrorHandler("Please Fill Full Form!", 400));
   }
-  if (password !== confirmPassword) {
-    return next(
-      new ErrorHandler("Password & Confirm Password Do Not Match!", 400)
-    );
-  }
+
   const user = await User.findOne({ email }).select("+password");
   if (!user) {
     return next(new ErrorHandler("Invalid Email Or Password!", 400));
@@ -58,25 +38,18 @@ export const login = catchAsyncErrors(async (req, res, next) => {
   if (!isPasswordMatch) {
     return next(new ErrorHandler("Invalid Email Or Password!", 400));
   }
+  
   if (role !== user.role) {
     return next(new ErrorHandler(`User Not Found With This Role!`, 400));
   }
+  
   generateToken(user, "Login Successfully!", 201, res);
 });
 
 export const addNewAdmin = catchAsyncErrors(async (req, res, next) => {
-  const { firstName, lastName, email, phone, nic, dob, gender, password } =
-    req.body;
-  if (
-    !firstName ||
-    !lastName ||
-    !email ||
-    !phone ||
-    !nic ||
-    !dob ||
-    !gender ||
-    !password
-  ) {
+  const { firstName, lastName, email, phone, nic, dob, gender, password } = req.body;
+  
+  if (!firstName || !lastName || !email || !phone || !nic || !dob || !gender || !password) {
     return next(new ErrorHandler("Please Fill Full Form!", 400));
   }
 
@@ -86,16 +59,9 @@ export const addNewAdmin = catchAsyncErrors(async (req, res, next) => {
   }
 
   const admin = await User.create({
-    firstName,
-    lastName,
-    email,
-    phone,
-    nic,
-    dob,
-    gender,
-    password,
-    role: "Admin",
+    firstName, lastName, email, phone, nic, dob, gender, password, role: "Admin",
   });
+  
   res.status(200).json({
     success: true,
     message: "New Admin Registered",
@@ -104,78 +70,48 @@ export const addNewAdmin = catchAsyncErrors(async (req, res, next) => {
 });
 
 export const addNewDoctor = catchAsyncErrors(async (req, res, next) => {
-  if (!req.files || Object.keys(req.files).length === 0) {
-    return next(new ErrorHandler("Doctor Avatar Required!", 400));
+  try {
+    const { firstName, lastName, email, phone, nic, dob, gender, password, doctorDepartment } = req.body;
+
+    // ✅ SIMPLE VALIDATION
+    if (!firstName || !lastName || !email || !phone || !nic || !dob || !gender || !password || !doctorDepartment) {
+      return next(new ErrorHandler("All fields are required", 400));
+    }
+
+    // ✅ CHECK EXISTING USER
+    const isRegistered = await User.findOne({ email });
+    if (isRegistered) {
+      return next(new ErrorHandler("Email already exists", 400));
+    }
+
+    // ✅ CREATE DOCTOR
+    const doctor = await User.create({
+      firstName,
+      lastName,
+      email,
+      phone,
+      nic,
+      dob,
+      gender,
+      password,
+      role: "Doctor",
+      doctorDepartment,
+      docAvatar: {
+        public_id: "default_avatar",
+        url: "/docHolder.jpg"
+      }
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Doctor registered successfully!",
+      doctor,
+    });
+    
+  } catch (error) {
+    console.error("Doctor creation error:", error);
+    return next(new ErrorHandler("Server error", 500));
   }
-  const { docAvatar } = req.files;
-  const allowedFormats = ["image/png", "image/jpeg", "image/webp"];
-  if (!allowedFormats.includes(docAvatar.mimetype)) {
-    return next(new ErrorHandler("File Format Not Supported!", 400));
-  }
-  const {
-    firstName,
-    lastName,
-    email,
-    phone,
-    nic,
-    dob,
-    gender,
-    password,
-    doctorDepartment,
-  } = req.body;
-  if (
-    !firstName ||
-    !lastName ||
-    !email ||
-    !phone ||
-    !nic ||
-    !dob ||
-    !gender ||
-    !password ||
-    !doctorDepartment ||
-    !docAvatar
-  ) {
-    return next(new ErrorHandler("Please Fill Full Form!", 400));
-  }
-  const isRegistered = await User.findOne({ email });
-  if (isRegistered) {
-    return next(
-      new ErrorHandler("Doctor With This Email Already Exists!", 400)
-    );
-  }
-  const cloudinaryResponse = await cloudinary.uploader.upload(
-    docAvatar.tempFilePath
-  );
-  if (!cloudinaryResponse || cloudinaryResponse.error) {
-    console.error(
-      "Cloudinary Error:",
-      cloudinaryResponse.error || "Unknown Cloudinary error"
-    );
-    return next(
-      new ErrorHandler("Failed To Upload Doctor Avatar To Cloudinary", 500)
-    );
-  }
-  const doctor = await User.create({
-    firstName,
-    lastName,
-    email,
-    phone,
-    nic,
-    dob,
-    gender,
-    password,
-    role: "Doctor",
-    doctorDepartment,
-    docAvatar: {
-      public_id: cloudinaryResponse.public_id,
-      url: cloudinaryResponse.secure_url,
-    },
-  });
-  res.status(200).json({
-    success: true,
-    message: "New Doctor Registered",
-    doctor,
-  });
 });
 
 export const getAllDoctors = catchAsyncErrors(async (req, res, next) => {
@@ -194,30 +130,22 @@ export const getUserDetails = catchAsyncErrors(async (req, res, next) => {
   });
 });
 
-// Logout function for dashboard admin
 export const logoutAdmin = catchAsyncErrors(async (req, res, next) => {
-  res
-    .status(201)
-    .cookie("adminToken", "", {
-      httpOnly: true,
-      expires: new Date(Date.now()),
-    })
-    .json({
-      success: true,
-      message: "Admin Logged Out Successfully.",
-    });
+  res.status(200).cookie("adminToken", "", {
+    httpOnly: true,
+    expires: new Date(Date.now()),
+  }).json({
+    success: true,
+    message: "Admin Logged Out Successfully.",
+  });
 });
 
-// Logout function for frontend patient
 export const logoutPatient = catchAsyncErrors(async (req, res, next) => {
-  res
-    .status(201)
-    .cookie("patientToken", "", {
-      httpOnly: true,
-      expires: new Date(Date.now()),
-    })
-    .json({
-      success: true,
-      message: "Patient Logged Out Successfully.",
-    });
+  res.status(200).cookie("patientToken", "", {
+    httpOnly: true,
+    expires: new Date(Date.now()),
+  }).json({
+    success: true,
+    message: "Patient Logged Out Successfully.",
+  });
 });
