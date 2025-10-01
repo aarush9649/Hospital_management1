@@ -34,4 +34,45 @@ The system allows **Admins** to manage **Doctors** and **Patients**, provides se
 ---
 
 ## Project Structure
+Hospital-Management-System/
+├── backend/ # Node.js + Express API
+├── dashboard/ # Admin Dashboard React app
+├── frontend/ # React.js user-facing UI
+├── .gitignore
+├── README.md
+└── package.json
+
+
+---
+
+## Installation
+
+1. Clone the repository:
+```bash
+git clone https://github.com/yourusername/HospitalManagementSystem.git
+
+cd backend
+npm install
+
+cd ../frontend
+npm install
+
+cd ../dashboard
+npm install
+
+PORT=5000
+MONGO_URI=your_mongodb_connection_string
+JWT_SECRET_KEY=your_jwt_secret
+JWT_EXPIRES=7d
+
+cd backend
+npm run dev
+
+cd ../frontend
+npm start
+
+cd ../dashboard
+npm start
+
+
 
